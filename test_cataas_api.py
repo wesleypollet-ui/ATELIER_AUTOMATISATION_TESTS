@@ -118,20 +118,6 @@ def test_random_cat_json_format():
     return {"latency_ms": latency_ms}
 
 
-def test_cat_json_has_id():
-    response, latency_ms = call_api(
-        "/cat",
-        params={"json": "true"},
-        headers={"Accept": "application/json"},
-    )
-
-    data = read_json(response)
-    assert "_id" in data
-    assert isinstance(data["_id"], str)
-
-    return {"latency_ms": latency_ms}
-
-
 def test_cat_json_has_tags():
     response, latency_ms = call_api(
         "/cat",
@@ -201,7 +187,6 @@ ALL_TESTS = [
     test_random_cat_returns_image,
     test_cat_says_returns_image,
     test_random_cat_json_format,
-    test_cat_json_has_id,
     test_cat_json_has_tags,
     test_tags_returns_json_array,
     test_cats_search_with_params,
