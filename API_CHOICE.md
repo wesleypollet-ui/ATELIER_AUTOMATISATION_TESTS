@@ -1,32 +1,45 @@
 # API Choice
 
-- Étudiant : Wesley POLLET
-- API choisie : CATAAS
-- URL base : https://cataas.com/api/
-- Documentation officielle / README : https://cataas.com/#/documentation
-- Auth : None
-- Endpoints testés :
-  - GET https://cataas.com/cat
-  - GET https://cataas.com/cat/says/hello
-  - GET https://cataas.com/api/cats
-- Hypothèses de contrat (champs attendus, types, codes) :
-  - Réponses en format JSON ou image (JPEG)
-  - Champs possibles :
-    - id : string
-    - tags : array[string]
-    - createdAt : string (date ISO)
-  - Codes HTTP :
-    - 200 : succès
-    - 404 : ressource non trouvée
-    - 500 : erreur serveur
-  - Limites / rate limiting connu :
-    - API publique gratuite
-    - Pas de limite officiellement documentée
-    - Possible throttling en cas de requêtes trop fréquentes
-    - Pas de garantie de performance (API non commerciale)
-  - Risques (instabilité, downtime, CORS, etc.) :
-    - Service externe non critique (peut être indisponible temporairement)
-    - Absence de SLA (pas de garantie de disponibilité)
-    - Mélange de réponses JSON et images (gestion différente côté code)
-    - Risque de CORS si utilisée dans une application web front-end
-    - Dépendance à un service tiers non contrôlé
+* Étudiant : Wesley POLLET
+
+* API choisie : CATAAS
+
+* URL base : https://cataas.com
+
+* Documentation officielle / README : https://cataas.com/doc
+
+* Auth : None (aucune authentification requise)
+
+* Endpoints testés :
+  * GET /cat → retourne une image de chat aléatoire
+  * GET /cat?json=true → retourne les métadonnées JSON d'un chat aléatoire
+  * GET /cat/says/{text} → retourne une image avec texte personnalisé
+  * GET /api/tags → retourne la liste des tags disponibles (JSON)
+  * GET /api/cats?tags=cute&limit=5 → retourne une liste de chats filtrés (JSON)
+
+* Hypothèses de contrat (champs attendus, types, codes) :
+  * Code 200 → succès
+  * Code 404 → ressource inexistante
+  * Code 5xx → erreur serveur
+  * Réponses :
+    * image/jpeg ou image/png pour les endpoints /cat (sans ?json=true)
+    * application/json pour /cat?json=true, /api/tags et /api/cats
+  * Exemple JSON attendu :
+    * /cat?json=true → objet JSON contenant au moins :
+      * _id : string
+      * tags : array
+    * /api/tags → tableau de chaînes de caractères
+    * /api/cats → tableau d'objets contenant au moins :
+      * _id : string
+      * tags : array
+
+* Limites / rate limiting connu :
+  * Aucun rate limiting documenté officiellement
+  * API publique donc possible limitation implicite en cas de forte charge
+
+* Risques (instabilité, downtime, CORS, etc.) :
+  * API publique non garantie (risque de downtime)
+  * Variabilité du temps de réponse
+  * Réponses parfois lentes ou erreurs 5xx possibles
+  * CORS non garanti selon les sources
+  * Dépendance à un service externe non contrôlé
