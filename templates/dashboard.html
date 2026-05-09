@@ -1,1 +1,355 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cataas — Dashboard de tests</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --card: #121a33;
+      --muted: #aab4d4;
+      --text: #e9edff;
+      --accent: #77baff;
+      --ok: #62d6a0;
+      --warn: #ffcc66;
+      --bad: #ff6b7a;
+      --line: #23305c;
+    }
 
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(1200px 600px at 10% 0%, #172257 0%, var(--bg) 60%);
+      color: var(--text);
+      padding: 2rem;
+      line-height: 1.5;
+    }
+
+    h1 { font-size: 1.8rem; margin-bottom: 0.3rem; }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 2rem;
+    }
+
+    .subtitle a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .subtitle a:hover { text-decoration: underline; }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card h2 {
+      font-size: 1rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+    }
+
+    .metrics {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .metric {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      flex: 1;
+      min-width: 140px;
+    }
+
+    .metric .label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 0.3rem;
+    }
+
+    .metric .value {
+      font-size: 1.6rem;
+      font-weight: bold;
+    }
+
+    .ok   { color: var(--ok); }
+    .warn { color: var(--warn); }
+    .bad  { color: var(--bad); }
+
+    .test-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-top: 1rem;
+    }
+
+    .test-row {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px;
+      padding: 0.5rem 0.8rem;
+      font-size: 0.85rem;
+    }
+
+    .test-name { flex: 1; }
+
+    .test-latency {
+      color: var(--muted);
+      font-size: 0.78rem;
+      min-width: 70px;
+      text-align: right;
+    }
+
+    .test-details {
+      color: var(--bad);
+      font-size: 0.78rem;
+      font-style: italic;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      min-width: 48px;
+      text-align: center;
+    }
+
+    .badge-pass {
+      background: rgba(98,214,160,0.15);
+      color: var(--ok);
+    }
+
+    .badge-fail {
+      background: rgba(255,107,122,0.15);
+      color: var(--bad);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    th {
+      text-align: left;
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-weight: 500;
+      border-bottom: 1px solid var(--line);
+    }
+
+    td {
+      padding: 0.6rem 0.8rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    .no-data {
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .btn {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: 0.5rem 1.2rem;
+      background: rgba(119,186,255,0.12);
+      border: 1px solid rgba(119,186,255,0.28);
+      color: var(--text);
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 0.85rem;
+    }
+
+    .btn:hover {
+      background: rgba(119,186,255,0.2);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🐱 Cataas — Dashboard de tests API</h1>
+  <p class="subtitle">
+    Automatisation des tests ·
+    <a href="/run">▶ Lancer un run</a> ·
+    <a href="/health">❤ Health</a> ·
+    <a href="/export">⬇ Export JSON</a>
+  </p>
+
+  {% if last %}
+  <div class="card">
+    <h2>Dernier run — {{ last.timestamp }}</h2>
+
+    <div class="metrics">
+
+      <div class="metric">
+        <div class="label">Tests passés</div>
+        <div class="value {% if last.summary.failed == 0 %}ok{% elif last.summary.failed <= 2 %}warn{% else %}bad{% endif %}">
+          {{ last.summary.passed }} / {{ last.summary.total }}
+        </div>
+      </div>
+
+      <div class="metric">
+        <div class="label">Taux d'erreur</div>
+        <div class="value {% if last.summary.error_rate == 0 %}ok{% elif last.summary.error_rate < 0.3 %}warn{% else %}bad{% endif %}">
+          {{ "%.0f"|format(last.summary.error_rate * 100) }}%
+        </div>
+      </div>
+
+      <div class="metric">
+        <div class="label">Disponibilité</div>
+        <div class="value {% if last.summary.availability_pct == 100 %}ok{% elif last.summary.availability_pct >= 80 %}warn{% else %}bad{% endif %}">
+          {{ last.summary.availability_pct }}%
+        </div>
+      </div>
+
+      <div class="metric">
+        <div class="label">Latence moy.</div>
+        <div class="value {% if last.summary.latency_ms_avg is not none and last.summary.latency_ms_avg < 500 %}ok{% elif last.summary.latency_ms_avg is not none and last.summary.latency_ms_avg < 1500 %}warn{% else %}bad{% endif %}">
+          {% if last.summary.latency_ms_avg is not none %}
+            {{ last.summary.latency_ms_avg }} ms
+          {% else %}
+            —
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="metric">
+        <div class="label">Latence p95</div>
+        <div class="value {% if last.summary.latency_ms_p95 is not none and last.summary.latency_ms_p95 < 1000 %}ok{% elif last.summary.latency_ms_p95 is not none and last.summary.latency_ms_p95 < 2000 %}warn{% else %}bad{% endif %}">
+          {% if last.summary.latency_ms_p95 is not none %}
+            {{ last.summary.latency_ms_p95 }} ms
+          {% else %}
+            —
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="metric">
+        <div class="label">Latence min</div>
+        <div class="value">
+          {% if last.summary.latency_ms_min is not none %}
+            {{ last.summary.latency_ms_min }} ms
+          {% else %}
+            —
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="metric">
+        <div class="label">Latence max</div>
+        <div class="value">
+          {% if last.summary.latency_ms_max is not none %}
+            {{ last.summary.latency_ms_max }} ms
+          {% else %}
+            —
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+
+    <div class="test-list">
+      {% for test in last.tests %}
+      <div class="test-row">
+        <span class="badge {% if test.status == 'PASS' %}badge-pass{% else %}badge-fail{% endif %}">
+          {{ test.status }}
+        </span>
+        <span class="test-name">{{ test.name }}</span>
+        <span class="test-latency">
+          {% if test.latency_ms is not none %}{{ test.latency_ms }} ms{% endif %}
+        </span>
+        {% if test.details %}
+        <span class="test-details">{{ test.details }}</span>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  {% else %}
+  <div class="card">
+    <p class="no-data">
+      Aucun run enregistré.
+      <a href="/run" style="color: var(--accent)">Lancer le premier run →</a>
+    </p>
+  </div>
+  {% endif %}
+
+  <div class="card">
+    <h2>Historique des runs</h2>
+    {% if runs %}
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Timestamp</th>
+          <th>Passés</th>
+          <th>Échoués</th>
+          <th>Erreur</th>
+          <th>Dispo.</th>
+          <th>Lat. moy.</th>
+          <th>Lat. p95</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for run in runs %}
+        <tr>
+          <td style="color: var(--muted)">{{ run.id }}</td>
+          <td>{{ run.timestamp }}</td>
+          <td class="ok">{{ run.summary.passed }}</td>
+          <td class="{% if run.summary.failed > 0 %}bad{% else %}ok{% endif %}">
+            {{ run.summary.failed }}
+          </td>
+          <td class="{% if run.summary.error_rate == 0 %}ok{% elif run.summary.error_rate < 0.3 %}warn{% else %}bad{% endif %}">
+            {{ "%.1f"|format(run.summary.error_rate * 100) }}%
+          </td>
+          <td class="{% if run.summary.availability_pct == 100 %}ok{% elif run.summary.availability_pct >= 80 %}warn{% else %}bad{% endif %}">
+            {{ run.summary.availability_pct }}%
+          </td>
+          <td>
+            {% if run.summary.latency_ms_avg is not none %}
+              {{ run.summary.latency_ms_avg }} ms
+            {% else %}
+              —
+            {% endif %}
+          </td>
+          <td>
+            {% if run.summary.latency_ms_p95 is not none %}
+              {{ run.summary.latency_ms_p95 }} ms
+            {% else %}
+              —
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="no-data">Aucun historique disponible.</p>
+    {% endif %}
+
+    <a class="btn" href="/export">⬇ Exporter JSON</a>
+  </div>
+
+</body>
+</html>
