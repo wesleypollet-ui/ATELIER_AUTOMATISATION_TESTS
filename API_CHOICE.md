@@ -1,13 +1,32 @@
 # API Choice
 
-- Étudiant :
-- API choisie :
-- URL base :
-- Documentation officielle / README :
-- Auth : None / API Key / OAuth
+- Étudiant : Wesley POLLET
+- API choisie : CATAAS
+- URL base : https://cataas.com/api/
+- Documentation officielle / README : https://cataas.com/#/documentation
+- Auth : None
 - Endpoints testés :
-  - GET ...
-  - GET ...
+  - GET https://cataas.com/cat
+  - GET https://cataas.com/cat/says/hello
+  - GET https://cataas.com/api/cats
 - Hypothèses de contrat (champs attendus, types, codes) :
-- Limites / rate limiting connu :
-- Risques (instabilité, downtime, CORS, etc.) :
+  - Réponses en format JSON ou image (JPEG)
+  - Champs possibles :
+    - id : string
+    - tags : array[string]
+    - createdAt : string (date ISO)
+  - Codes HTTP :
+    - 200 : succès
+    - 404 : ressource non trouvée
+    - 500 : erreur serveur
+  - Limites / rate limiting connu :
+    - API publique gratuite
+    - Pas de limite officiellement documentée
+    - Possible throttling en cas de requêtes trop fréquentes
+    - Pas de garantie de performance (API non commerciale)
+  - Risques (instabilité, downtime, CORS, etc.) :
+    - Service externe non critique (peut être indisponible temporairement)
+    - Absence de SLA (pas de garantie de disponibilité)
+    - Mélange de réponses JSON et images (gestion différente côté code)
+    - Risque de CORS si utilisée dans une application web front-end
+    - Dépendance à un service tiers non contrôlé
